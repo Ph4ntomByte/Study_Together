@@ -66,4 +66,39 @@ def register():
 def logout():
     """Handle user logout."""
     logout_user()
-    return redirect(url_for('main.index')) 
+    return redirect(url_for('main.index'))
+
+@auth_bp.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    """Handle user profile page."""
+    if request.method == 'POST':
+        data = request.get_json()
+        
+        # Update name if provided
+        if data.get('name'):
+            current_user.name = data.get('name')
+        
+        # Check if username should be updated
+        if data.get('username') and data.get('username') != current_user.username:
+            if User.query.filter_by(username=data.get('username')).first():
+                return jsonify({'error': 'Username already taken'}), 400
+            current_user.username = data.get('username')
+        
+        # Check if email should be updated
+        if data.get('email') and data.get('email') != current_user.email:
+            if User.query.filter_by(email=data.get('email')).first():
+                return jsonify({'error': 'Email already registered'}), 400
+            current_user.email = data.get('email')
+        
+        # Update password if provided
+        if data.get('new_password'):
+            if not current_user.check_password(data.get('current_password')):
+                return jsonify({'error': 'Current password is incorrect'}), 400
+            current_user.set_password(data.get('new_password'))
+        
+        # Save changes
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Profile updated successfully'})
+    
+    return render_template('auth/profile.html', title='My Profile') 

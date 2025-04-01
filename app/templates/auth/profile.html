@@ -1,0 +1,355 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<!-- Toast container for notifications -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="toastContainer"></div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i> Account Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 120px; height: 120px; background-color: var(--primary-color); color: white; font-size: 2.5rem;">
+                        {{ current_user.username[0]|upper }}
+                    </div>
+                    <h4>{{ current_user.name }}</h4>
+                    <p class="text-muted">Member since {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                </div>
+                
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong><i class="fas fa-at me-2"></i> Username</strong>
+                            <div>{{ current_user.username }}</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary edit-trigger" data-target="username-form">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong><i class="fas fa-envelope me-2"></i> Email</strong>
+                            <div>{{ current_user.email }}</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary edit-trigger" data-target="email-form">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong><i class="fas fa-id-badge me-2"></i> Full Name</strong>
+                            <div>{{ current_user.name }}</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary edit-trigger" data-target="name-form">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong><i class="fas fa-lock me-2"></i> Password</strong>
+                            <div>••••••••</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary edit-trigger" data-target="password-form">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4 edit-section" id="username-form">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-at me-2"></i> Change Username</h5>
+            </div>
+            <div class="card-body">
+                <div id="username-error-container"></div>
+                <form id="usernameForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">New Username</label>
+                        <input type="text" class="form-control" id="username" name="username" value="{{ current_user.username }}" required>
+                        <div class="form-text">Your username is visible to other users and used for login.</div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary me-2 cancel-edit">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm mb-4 edit-section" id="email-form">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-envelope me-2"></i> Change Email</h5>
+            </div>
+            <div class="card-body">
+                <div id="email-error-container"></div>
+                <form id="emailForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">New Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                        <div class="form-text">Your email is used for login and notifications.</div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary me-2 cancel-edit">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm mb-4 edit-section" id="name-form">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-id-badge me-2"></i> Change Full Name</h5>
+            </div>
+            <div class="card-body">
+                <div id="name-error-container"></div>
+                <form id="nameForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ current_user.name }}" required>
+                        <div class="form-text">Your name is displayed to other users in study groups.</div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary me-2 cancel-edit">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm mb-4 edit-section" id="password-form">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-lock me-2"></i> Change Password</h5>
+            </div>
+            <div class="card-body">
+                <div id="password-error-container"></div>
+                <form id="passwordForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary me-2 cancel-edit">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Hide edit sections initially
+    $('.edit-section').hide();
+    
+    // Show edit section when edit button is clicked
+    $('.edit-trigger').on('click', function() {
+        const targetId = $(this).data('target');
+        $('.edit-section').hide();
+        $(`#${targetId}`).show();
+    });
+    
+    // Hide edit section when cancel button is clicked
+    $('.cancel-edit').on('click', function() {
+        $(this).closest('.edit-section').hide();
+    });
+    
+    // Toast notification function
+    function showToast(message, type = 'success') {
+        const id = 'toast-' + Date.now();
+        const bgClass = type === 'success' ? 'bg-success' : 
+                        type === 'error' ? 'bg-danger' : 
+                        type === 'warning' ? 'bg-warning' : 'bg-info';
+        
+        const icon = type === 'success' ? '<i class="fas fa-check-circle me-2"></i>' : 
+                    type === 'error' ? '<i class="fas fa-exclamation-circle me-2"></i>' : 
+                    type === 'warning' ? '<i class="fas fa-exclamation-triangle me-2"></i>' : 
+                    '<i class="fas fa-info-circle me-2"></i>';
+        
+        const toast = `
+            <div id="${id}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${icon} ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        $('#toastContainer').append(toast);
+        const toastElement = new bootstrap.Toast(document.getElementById(id), {
+            autohide: true,
+            delay: 5000
+        });
+        toastElement.show();
+        
+        // Remove the toast element after it's hidden
+        $(`#${id}`).on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+    
+    // Show error message in a container
+    function showError(containerId, message) {
+        $(`#${containerId}`).html(`
+            <div class="alert alert-danger alert-dismissible fade show">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `);
+    }
+    
+    // Handle username form submission
+    $('#usernameForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: "{{ url_for('auth.profile') }}",
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                username: $('#username').val()
+            }),
+            success: function(response) {
+                showToast('Username updated successfully');
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1000);
+            },
+            error: function(xhr) {
+                let error = 'An error occurred. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    error = xhr.responseJSON.error;
+                }
+                showError('username-error-container', error);
+            }
+        });
+    });
+    
+    // Handle email form submission
+    $('#emailForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: "{{ url_for('auth.profile') }}",
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                email: $('#email').val()
+            }),
+            success: function(response) {
+                showToast('Email updated successfully');
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1000);
+            },
+            error: function(xhr) {
+                let error = 'An error occurred. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    error = xhr.responseJSON.error;
+                }
+                showError('email-error-container', error);
+            }
+        });
+    });
+    
+    // Handle name form submission
+    $('#nameForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: "{{ url_for('auth.profile') }}",
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                name: $('#name').val()
+            }),
+            success: function(response) {
+                showToast('Name updated successfully');
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1000);
+            },
+            error: function(xhr) {
+                let error = 'An error occurred. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    error = xhr.responseJSON.error;
+                }
+                showError('name-error-container', error);
+            }
+        });
+    });
+    
+    // Handle password form submission
+    $('#passwordForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate passwords match
+        if ($('#new_password').val() !== $('#confirm_password').val()) {
+            showError('password-error-container', 'New passwords do not match');
+            return;
+        }
+        
+        $.ajax({
+            url: "{{ url_for('auth.profile') }}",
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                current_password: $('#current_password').val(),
+                new_password: $('#new_password').val()
+            }),
+            success: function(response) {
+                showToast('Password updated successfully');
+                $('#passwordForm')[0].reset();
+                $('#password-form').hide();
+            },
+            error: function(xhr) {
+                let error = 'An error occurred. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    error = xhr.responseJSON.error;
+                }
+                showError('password-error-container', error);
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 
