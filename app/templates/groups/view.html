@@ -60,7 +60,7 @@
                             <div class="col-md-6 col-lg-4">
                                 <div class="card h-100">
                                     <div class="card-body d-flex align-items-center">
-                                        <div class="rounded-circle bg-{{ member.is_admin ? 'primary' : 'secondary' }} text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        <div class="rounded-circle bg-{% if member.is_admin %}primary{% else %}secondary{% endif %} text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
                                             <i class="fas fa-user"></i>
                                         </div>
                                         <div>
@@ -70,7 +70,7 @@
                                                     <span class="badge bg-info ms-1">You</span>
                                                 {% endif %}
                                             </h6>
-                                            <small class="text-muted">{{ member.is_admin ? 'Admin' : 'Member' }} | Joined {{ member.joined_at.strftime('%b %d, %Y') }}</small>
+                                            <small class="text-muted">{% if member.is_admin %}Admin{% else %}Member{% endif %} | Joined {{ member.joined_at.strftime('%b %d, %Y') }}</small>
                                         </div>
                                     </div>
                                 </div>
