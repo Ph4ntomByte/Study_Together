@@ -10,12 +10,36 @@
   --danger-color: #e74a3b;
   --light-color: #f8f9fc;
   --dark-color: #5a5c69;
+  --primary: #4e73df;
+  --primary-dark: #3a5cdc;
+  --secondary: #6c757d;
+  --success: #1cc88a;
+  --info: #36b9cc;
+  --warning: #f6c23e;
+  --danger: #e74a3b;
+  --light: #f8f9fc;
+  --dark: #5a5c69;
+  --white: #fff;
+  --bg-light: #f8f9fc;
+  --text-light: #5a5c69;
+  --card-bg-light: #fff;
+  --border-light: #e3e6f0;
+  --bg-dark: #1e2235;
+  --text-dark: #ffffff;
+  --card-bg-dark: #2a3048;
+  --border-dark: #4a5275;
+  --bg-color: var(--bg-light);
+  --text-color: var(--text-light);
+  --card-bg: var(--card-bg-light);
+  --border-color: var(--border-light);
 }
 
 /* General styles */
 body {
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: #f8f9fc;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Navbar enhancements */
@@ -30,6 +54,9 @@ body {
   box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
   border-radius: 0.5rem;
   transition: transform 0.2s ease-in-out;
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .card:hover {
@@ -163,4 +190,211 @@ footer {
   background-color: var(--primary-color);
   color: white;
   font-weight: 500;
+}
+
+/* Dark Theme Styles */
+body.dark-theme {
+  --bg-color: var(--bg-dark);
+  --text-color: var(--text-dark);
+  --card-bg: var(--card-bg-dark);
+  --border-color: var(--border-dark);
+  color: #ffffff;
+}
+
+/* Dark theme navbar */
+body.dark-theme .navbar-dark {
+  background-color: #2d3554 !important;
+}
+
+/* Dark theme footer */
+body.dark-theme footer {
+  background-color: #2d3554 !important;
+  color: var(--text-dark);
+}
+
+/* Dark theme dropdown menu */
+body.dark-theme .dropdown-menu {
+  background-color: var(--card-bg-dark);
+  border-color: var(--border-dark);
+}
+
+body.dark-theme .dropdown-item {
+  color: var(--text-dark);
+}
+
+body.dark-theme .dropdown-item:hover {
+  background-color: #4d5278;
+  color: var(--white);
+}
+
+/* Dark theme form elements */
+body.dark-theme .form-control,
+body.dark-theme .form-select {
+  background-color: #343b57;
+  border-color: var(--border-dark);
+  color: var(--text-dark);
+}
+
+body.dark-theme .form-control:focus,
+body.dark-theme .form-select:focus {
+  background-color: #343b57;
+  color: var(--text-dark);
+  border-color: var(--primary);
+}
+
+/* Dark theme list groups */
+body.dark-theme .list-group-item {
+  background-color: var(--card-bg-dark);
+  border-color: var(--border-dark);
+  color: var(--text-dark);
+}
+
+/* Dark theme modals */
+body.dark-theme .modal-content {
+  background-color: var(--card-bg-dark);
+  border-color: var(--border-dark);
+}
+
+body.dark-theme .modal-header,
+body.dark-theme .modal-footer {
+  border-color: var(--border-dark);
+}
+
+/* Dark theme alerts */
+body.dark-theme .alert-info {
+  background-color: #2e4d6a;
+  border-color: #1c2f40;
+  color: #c4e3f3;
+}
+
+body.dark-theme .alert-danger {
+  background-color: #532a39;
+  border-color: #3c1a27;
+  color: #f8c9d0;
+}
+
+body.dark-theme .alert-success {
+  background-color: #1f483d;
+  border-color: #103025;
+  color: #a3e4c9;
+}
+
+body.dark-theme .alert-warning {
+  background-color: #594b20;
+  border-color: #3c3010;
+  color: #ffe7a0;
+}
+
+/* Dark theme card and button styles */
+body.dark-theme .card {
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(0, 0, 0, 0.25);
+}
+
+body.dark-theme .card-header {
+  background-color: #3c4268 !important;
+  color: white;
+}
+
+body.dark-theme .card-footer {
+  background-color: #343b57 !important;
+  border-color: var(--border-dark);
+}
+
+body.dark-theme .text-muted {
+  color: #d8deff !important;
+}
+
+body.dark-theme a:not(.btn) {
+  color: #8ea6ff;
+}
+
+body.dark-theme a:hover:not(.btn) {
+  color: #aebdff;
+}
+
+body.dark-theme .bg-light {
+  background-color: #343b57 !important;
+}
+
+body.dark-theme .bg-white {
+  background-color: #2a3048 !important;
+  color: white;
+}
+
+body.dark-theme .bg-primary {
+  background-color: #5e81ff !important;
+}
+
+body.dark-theme .text-dark {
+  color: #ffffff !important;
+}
+
+/* Dark theme chat styles */
+body.dark-theme .chat-bubble-other {
+  background-color: #343b57;
+  color: white;
+}
+
+/* Dark theme badges and buttons */
+body.dark-theme .badge {
+  color: white;
+}
+
+body.dark-theme .btn-outline-primary {
+  color: #8ea6ff;
+  border-color: #8ea6ff;
+}
+
+body.dark-theme .btn-outline-primary:hover {
+  background-color: #5e81ff;
+  color: white;
+  border-color: #5e81ff;
+}
+
+body.dark-theme .btn-primary {
+  background-color: #5e81ff;
+  border-color: #5e81ff;
+}
+
+body.dark-theme .btn-primary:hover {
+  background-color: #4a6fe8;
+  border-color: #4a6fe8;
+}
+
+/* Theme toggle button styles */
+.theme-toggle-btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.theme-toggle-btn i {
+  margin-right: 0.5rem;
+}
+
+/* Ensure all text is readable in dark mode */
+body.dark-theme p, 
+body.dark-theme h1, 
+body.dark-theme h2, 
+body.dark-theme h3, 
+body.dark-theme h4, 
+body.dark-theme h5, 
+body.dark-theme h6, 
+body.dark-theme span,
+body.dark-theme label,
+body.dark-theme strong {
+  color: #ffffff;
+}
+
+/* Icon background for cards */
+.icon-bg {
+  background-color: #f8f9fc;
+}
+
+body.dark-theme .icon-bg {
+  background-color: #3c4268;
+}
+
+body.dark-theme .icon-bg .text-primary {
+  color: #8ea6ff !important;
 } 

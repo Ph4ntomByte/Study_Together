@@ -17,6 +17,52 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add active class to current nav item
     highlightCurrentNavItem();
+    
+    // Theme toggling
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        
+        // Apply saved theme if it exists
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            document.documentElement.classList.add('dark-theme');
+            updateThemeToggleText(true);
+        }
+        
+        // Add click event to toggle theme
+        themeToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Toggle dark theme class on both body and html element
+            const isDarkTheme = document.body.classList.toggle('dark-theme');
+            document.documentElement.classList.toggle('dark-theme', isDarkTheme);
+            
+            // Save theme preference
+            localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+            
+            // Update toggle button text
+            updateThemeToggleText(isDarkTheme);
+        });
+    }
+    
+    // Helper function to update theme toggle button text and icon
+    function updateThemeToggleText(isDarkTheme) {
+        if (!themeToggle) return;
+        
+        const icon = themeToggle.querySelector('i');
+        
+        if (isDarkTheme) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+            themeToggle.innerHTML = icon.outerHTML + ' Light Mode';
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+            themeToggle.innerHTML = icon.outerHTML + ' Dark Mode';
+        }
+    }
 });
 
 /**
