@@ -12,4 +12,3 @@ SQLAlchemy==2.0.28
 Werkzeug==2.3.7
 email-validator==2.1.0.post1
 serverless-wsgi==3.0.2
-# Add any other dependencies your app needs
