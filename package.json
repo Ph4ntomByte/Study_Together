@@ -1,0 +1,17 @@
+{
+  "name": "study-together",
+  "version": "1.0.0",
+  "description": "Study Together application",
+  "main": "index.js",
+  "scripts": {
+    "build": "netlify-lambda build netlify/functions",
+    "start": "netlify-lambda serve netlify/functions"
+  },
+  "dependencies": {
+    "netlify-lambda": "^2.0.15",
+    "serverless-http": "^3.1.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 
