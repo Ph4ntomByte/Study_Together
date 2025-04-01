@@ -517,7 +517,7 @@ $(document).ready(function() {
     function handleChangeRequest(requestId, type, action) {
         let url = '';
         if (type === 'location') {
-            url = "{{ url_for('groups.vote_location_change', request_id='') }}" + requestId;
+            url = `/groups/location-change/${requestId}/vote`;
         } else {
             url = "{{ url_for('study_plans.handle_time_change', request_id='') }}" + requestId + "/" + action;
         }

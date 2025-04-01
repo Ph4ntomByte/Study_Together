@@ -404,7 +404,7 @@ $(document).ready(function() {
     // Vote on location change
     function voteOnLocationChange(requestId, vote) {
         $.ajax({
-            url: "{{ url_for('groups.vote_location_change', request_id='') }}" + requestId + "/vote",
+            url: `/groups/location-change/${requestId}/vote`,
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({
