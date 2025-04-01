@@ -68,6 +68,9 @@ def create_app(config=None):
     from app.routes.groups import groups_bp
     app.register_blueprint(groups_bp, url_prefix='/groups')
     
+    from app.routes.admin import admin_bp
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+    
     # Create database tables
     with app.app_context():
         db.create_all()

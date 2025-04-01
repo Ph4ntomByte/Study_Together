@@ -131,14 +131,109 @@
                     </div>
                 </div>
                 
-                <div class="text-center mt-5">
-                    <p class="mb-4">Ready to enhance your academic experience through collaborative studying?</p>
-                    <div class="d-grid d-md-inline-block">
-                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5">Get Started Now</a>
+                <h2 class="h4 mb-3 mt-5">We Value Your Feedback</h2>
+                <div class="card border bg-light mb-4">
+                    <div class="card-body p-4">
+                        <form id="feedbackForm">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="feedbackName" class="form-label">Your Name</label>
+                                    <input type="text" class="form-control" id="feedbackName" name="name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="feedbackEmail" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="feedbackEmail" name="email" required>
+                                </div>
+                                <div class="col-12">
+                                    <label for="feedbackSubject" class="form-label">Subject</label>
+                                    <input type="text" class="form-control" id="feedbackSubject" name="subject" required>
+                                </div>
+                                <div class="col-12">
+                                    <label for="feedbackMessage" class="form-label">Your Feedback</label>
+                                    <textarea class="form-control" id="feedbackMessage" name="message" rows="5" required></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-2"></i>Submit Feedback
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#feedbackForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Collect form data
+        const formData = {
+            name: $('#feedbackName').val(),
+            email: $('#feedbackEmail').val(),
+            subject: $('#feedbackSubject').val(),
+            message: $('#feedbackMessage').val()
+        };
+        
+        // Disable the submit button and show loading state
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>Sending...').prop('disabled', true);
+        
+        // Send data to the server
+        $.ajax({
+            url: "{{ url_for('main.submit_feedback') }}",
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify(formData),
+            success: function(response) {
+                // Show success message
+                const alertHtml = `
+                    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        ${response.message || 'Thank you for your feedback! We appreciate your input.'}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                $('#feedbackForm').append(alertHtml);
+                
+                // Reset the form
+                $('#feedbackForm')[0].reset();
+            },
+            error: function(xhr) {
+                // Show error message
+                let errorMessage = 'An error occurred while submitting your feedback. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                }
+                
+                const alertHtml = `
+                    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        ${errorMessage}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                $('#feedbackForm').append(alertHtml);
+            },
+            complete: function() {
+                // Restore button state
+                submitBtn.html(originalText).prop('disabled', false);
+            }
+        });
+    });
+});
+</script>
 {% endblock %} 

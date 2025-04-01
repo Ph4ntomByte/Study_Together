@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from app import db
 from app.models.group import (
     StudyGroup, GroupMember, GroupMessage, 
-    LocationChangeRequest, LocationChangeVote
+    LocationChangeRequest, LocationChangeVote, JoinRequest
 )
 from app.models.study_plan import StudyPlan
 
@@ -66,9 +66,37 @@ def api_view_group(group_id):
         group_id=group_id
     ).first()
     
-    if not membership:
-        return jsonify({'error': 'You are not a member of this group'}), 403
+    # Get all study plans for this group
+    study_plans = StudyPlan.query.filter_by(group_id=group_id).all()
+    study_plans_data = [plan.to_dict() for plan in study_plans]
     
+    # If not a group member, check if they have a pending join request
+    if not membership:
+        # Check if user has any pending join requests to any study plans in this group
+        study_plan_ids = [plan.id for plan in study_plans]
+        
+        if not study_plan_ids:
+            return jsonify({'error': 'You are not a member of this group'}), 403
+            
+        pending_request = JoinRequest.query.filter(
+            JoinRequest.user_id == current_user.id,
+            JoinRequest.study_plan_id.in_(study_plan_ids)
+        ).first()
+        
+        if pending_request:
+            # Provide limited information for users with pending requests
+            return jsonify({
+                'group': group.to_dict(),
+                'study_plans': study_plans_data,
+                'pending_request': True,
+                'members': [],
+                'messages': [],
+                'is_admin': False
+            })
+        else:
+            return jsonify({'error': 'You are not a member of this group'}), 403
+    
+    # For actual members, provide full information
     members = GroupMember.query.filter_by(group_id=group_id).all()
     members_data = [{
         'id': member.id,
@@ -82,15 +110,13 @@ def api_view_group(group_id):
     messages = GroupMessage.query.filter_by(group_id=group_id).order_by(GroupMessage.timestamp).all()
     messages_data = [message.to_dict() for message in messages]
     
-    study_plans = StudyPlan.query.filter_by(group_id=group_id).all()
-    study_plans_data = [plan.to_dict() for plan in study_plans]
-    
     return jsonify({
         'group': group.to_dict(),
         'members': members_data,
         'messages': messages_data,
         'study_plans': study_plans_data,
-        'is_admin': membership.is_admin
+        'is_admin': membership.is_admin,
+        'pending_request': False
     })
 
 @groups_bp.route('/<int:group_id>/messages', methods=['POST'])

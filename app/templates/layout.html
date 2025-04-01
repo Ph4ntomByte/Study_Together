@@ -56,6 +56,11 @@
                             <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">
                                 <i class="fas fa-id-card me-2"></i> Profile
                             </a></li>
+                            {% if current_user.id == 1 %}
+                            <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">
+                                <i class="fas fa-tachometer-alt me-2"></i> Admin Dashboard
+                            </a></li>
+                            {% endif %}
                             <li><a class="dropdown-item theme-toggle-btn" href="#" id="themeToggle">
                                 <i class="fas fa-moon"></i> Dark Mode
                             </a></li>

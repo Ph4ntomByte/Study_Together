@@ -1,6 +1,9 @@
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, request
 from flask_login import current_user
 from app.models.study_plan import StudyPlan
+from app.models.feedback import Feedback
+from app import db
+import logging
 
 main_bp = Blueprint('main', __name__)
 
@@ -26,4 +29,43 @@ def get_current_user():
             'email': current_user.email,
             'name': current_user.name
         })
-    return jsonify({'authenticated': False}) 
+    return jsonify({'authenticated': False})
+
+@main_bp.route('/api/feedback', methods=['POST'])
+def submit_feedback():
+    """Handle feedback form submissions."""
+    data = request.get_json()
+    
+    # Extract form data
+    name = data.get('name', '')
+    email = data.get('email', '')
+    subject = data.get('subject', '')
+    message = data.get('message', '')
+    
+    try:
+        # Create new feedback entry
+        feedback = Feedback(
+            name=name,
+            email=email,
+            subject=subject,
+            message=message
+        )
+        
+        # Save to database
+        db.session.add(feedback)
+        db.session.commit()
+        
+        # Log the feedback
+        logging.info(f"Feedback saved from {name} ({email}): {subject}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Thank you for your feedback! We appreciate your input.'
+        })
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error saving feedback: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'An error occurred while saving your feedback. Please try again.'
+        }), 500 
