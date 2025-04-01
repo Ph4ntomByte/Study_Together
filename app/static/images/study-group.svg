@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" style="enable-background:new 0 0 800 600" xml:space="preserve">
+  <style>
+    .st0{fill:#F0F2F8;} .st1{fill:#DFE3F3;} .st2{fill:#4E73DF;} .st3{fill:#3A5CDC;} 
+    .st4{fill:#FFFFFF;} .st5{fill:#F8F9FC;} .st6{fill:#E3E6F0;} .st7{fill:#D1D3E2;}
+    .st8{fill:#7B83EB;} .st9{fill:#5A5C69;} .st10{fill:#B589DF;} .st11{fill:#FFD484;}
+    .st12{fill:#FFB648;} .st13{fill:#FF9F00;} .st14{fill:#FF644E;} .st15{fill:#FF4F38;}
+    .st16{fill:#1CC88A;} .st17{fill:#13A06D;} .st18{fill:#10835A;} .st19{fill:#F6C23E;}
+    .st20{fill:#E0B036;} .st21{fill:#BA922C;} .st22{fill:#36B9CC;} .st23{fill:#2A91A0;}
+    .st24{fill:#6C757D;} .st25{fill:#FFAB00;} .st26{fill:#F1F1F1;} .st27{fill:#E9ECEF;}
+  </style>
+  
+  <!-- Background -->
+  <path class="st0" d="M0 0h800v600H0z"/>
+  <path class="st1" d="M620 530c0 33.1-26.9 60-60 60H240c-33.1 0-60-26.9-60-60V140c0-33.1 26.9-60 60-60h320c33.1 0 60 26.9 60 60v390z"/>
+  
+  <!-- Study table -->
+  <path class="st3" d="M600 310c0 5.5-4.5 10-10 10H210c-5.5 0-10-4.5-10-10v-60c0-5.5 4.5-10 10-10h380c5.5 0 10 4.5 10 10v60z"/>
+  <path class="st2" d="M600 260v50c0 5.5-4.5 10-10 10H210c-5.5 0-10-4.5-10-10v-50h400z"/>
+  <path class="st6" d="M570 380H230c-5.5 0-10-4.5-10-10v-50h360v50c0 5.5-4.5 10-10 10z"/>
+  
+  <!-- Table legs -->
+  <path class="st9" d="M240 380v100h40V380h-40zm280 0v100h40V380h-40z"/>
+  
+  <!-- Study materials on table -->
+  <!-- Laptop -->
+  <path class="st4" d="M360 290h80v40h-80z"/>
+  <path class="st6" d="M350 330h100v10H350z"/>
+  <path class="st9" d="M380 305h40v10h-40z"/>
+  
+  <!-- Books -->
+  <path class="st14" d="M300 260v40h-60v-40h60z"/>
+  <path class="st15" d="M300 270v30h-60v-30h60z"/>
+  <path class="st11" d="M290 260v40h-60v-40h60z"/>
+  <path class="st12" d="M290 270v30h-60v-30h60z"/>
+  <path class="st16" d="M280 260v40h-60v-40h60z"/>
+  <path class="st17" d="M280 270v30h-60v-30h60z"/>
+  
+  <!-- Coffee cup -->
+  <path class="st4" d="M530 260v30c0 5.5-4.5 10-10 10h-20c-5.5 0-10-4.5-10-10v-30h40z"/>
+  <path class="st19" d="M510 260v30c0 5.5-4.5 10-10 10h-20c-5.5 0-10-4.5-10-10v-30h40z"/>
+  <path class="st6" d="M540 260h-50v-10h50z"/>
+  <path class="st11" d="M510 270c5.5 0 10 4.5 10 10 0 5.5-4.5 10-10 10-5.5 0-10-4.5-10-10 0-5.5 4.5-10 10-10z"/>
+  
+  <!-- Students -->
+  <!-- Student 1 -->
+  <path class="st11" d="M220 220c0 11-9 20-20 20s-20-9-20-20 9-20 20-20 20 9 20 20z"/>
+  <path class="st12" d="M220 210c0 11-9 20-20 20s-20-9-20-20 9-20 20-20 20 9 20 20z"/>
+  <path class="st14" d="M230 330v-70c0-16.6-13.4-30-30-30s-30 13.4-30 30v70h60z"/>
+  <path class="st15" d="M230 280v50h-60v-50h60z"/>
+  
+  <!-- Student 2 -->
+  <path class="st2" d="M340 220c0 11-9 20-20 20s-20-9-20-20 9-20 20-20 20 9 20 20z"/>
+  <path class="st3" d="M340 210c0 11-9 20-20 20s-20-9-20-20 9-20 20-20 20 9 20 20z"/>
+  <path class="st16" d="M350 330v-70c0-16.6-13.4-30-30-30s-30 13.4-30 30v70h60z"/>
+  <path class="st17" d="M350 280v50h-60v-50h60z"/>
+  
+  <!-- Student 3 -->
+  <path class="st11" d="M460 220c0 11-9 20-20 20s-20-9-20-20 9-20 20-20 20 9 20 20z"/>
+  <path class="st12" d="M460 210c0 11-9 20-20 20s-20-9-20-20 9-20 20-20 20 9 20 20z"/>
+  <path class="st22" d="M470 330v-70c0-16.6-13.4-30-30-30s-30 13.4-30 30v70h60z"/>
+  <path class="st23" d="M470 280v50h-60v-50h60z"/>
+  
+  <!-- Student 4 -->
+  <path class="st2" d="M580 220c0 11-9 20-20 20s-20-9-20-20 9-20 20-20 20 9 20 20z"/>
+  <path class="st3" d="M580 210c0 11-9 20-20 20s-20-9-20-20 9-20 20-20 20 9 20 20z"/>
+  <path class="st19" d="M590 330v-70c0-16.6-13.4-30-30-30s-30 13.4-30 30v70h60z"/>
+  <path class="st20" d="M590 280v50h-60v-50h60z"/>
+  
+  <!-- Thought bubbles -->
+  <path class="st4" d="M160 150c0 11-9 20-20 20a20 20 0 110-40c11 0 20 9 20 20z"/>
+  <path class="st4" d="M180 120c0 16.6-13.4 30-30 30a30 30 0 110-60c16.6 0 30 13.4 30 30z"/>
+  <path class="st8" d="M165 120l-10-5 10-5-5-10 5 10 10-5-10 5 5 10z"/>
+  
+  <path class="st4" d="M380 140c0 11-9 20-20 20a20 20 0 110-40c11 0 20 9 20 20z"/>
+  <path class="st4" d="M400 110c0 16.6-13.4 30-30 30a30 30 0 110-60c16.6 0 30 13.4 30 30z"/>
+  <path class="st16" d="M385 110l-10-5 10-5-5-10 5 10 10-5-10 5 5 10z"/>
+  
+  <path class="st4" d="M600 150c0 11-9 20-20 20a20 20 0 110-40c11 0 20 9 20 20z"/>
+  <path class="st4" d="M620 120c0 16.6-13.4 30-30 30a30 30 0 110-60c16.6 0 30 13.4 30 30z"/>
+  <path class="st14" d="M605 120l-10-5 10-5-5-10 5 10 10-5-10 5 5 10z"/>
+  
+  <!-- Calendar/schedule -->
+  <path class="st4" d="M140 450h120v100H140z"/>
+  <path class="st2" d="M140 450h120v30H140z"/>
+  <path class="st6" d="M150 490h20v20h-20zm40 0h20v20h-20zm40 0h20v20h-20zm-80 30h20v20h-20zm40 0h20v20h-20zm40 0h20v20h-20z"/>
+  
+  <!-- Notes/textbook -->
+  <path class="st4" d="M540 450h120v100H540z"/>
+  <path class="st6" d="M550 470h100v10H550zm0 20h80v10h-80zm0 20h60v10h-60zm0 20h100v10H550z"/>
+  
+  <!-- Connection lines -->
+  <path class="st8" stroke-width="2" stroke-dasharray="5,5" d="M260 450h280"/>
+  <path class="st8" stroke-width="2" stroke-dasharray="5,5" d="M400 450v-70"/>
+</svg> 

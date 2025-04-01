@@ -1,0 +1,873 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<!-- Toast container for notifications -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="toastContainer"></div>
+</div>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">{{ plan.title }}</h4>
+                <span class="badge bg-light text-primary">{{ plan.subject }}</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h5 class="mb-3">Description</h5>
+                    <p>{{ plan.description or 'No description provided.' }}</p>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Details</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-map-marker-alt text-primary me-3"></i>
+                                <div>
+                                    <strong>Location</strong>
+                                    <div>{{ plan.location }}</div>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-calendar-alt text-primary me-3"></i>
+                                <div>
+                                    <strong>Date</strong>
+                                    <div>{{ plan.start_time.strftime('%A, %B %d, %Y') }}</div>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-clock text-primary me-3"></i>
+                                <div>
+                                    <strong>Time</strong>
+                                    <div>{{ plan.start_time.strftime('%I:%M %p') }} - {{ plan.end_time.strftime('%I:%M %p') }}</div>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-users text-primary me-3"></i>
+                                <div>
+                                    <strong>Capacity</strong>
+                                    <div>Maximum {{ plan.max_participants }} participants</div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Creator</h5>
+                        <div class="card">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">{{ plan.creator.name or plan.creator.username }}</h6>
+                                    <small class="text-muted">Created on {{ plan.created_at.strftime('%B %d, %Y') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if not plan.is_public %}
+                        <div class="mt-3">
+                            <div class="alert alert-info">
+                                <i class="fas fa-lock me-2"></i> This is a private study plan. Share it using the link below:
+                                <div class="mt-2 input-group">
+                                    <input type="text" class="form-control" id="shareLink" value="{{ url_for('study_plans.view_plan', plan_id=plan.id, token=plan.share_link, _external=True) }}" readonly>
+                                    <button class="btn btn-outline-secondary" type="button" id="copyLinkBtn">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if plan.group_id %}
+                <div class="mt-4">
+                    <h5 class="mb-3">Participants</h5>
+                    <div id="participantsList" class="row">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if current_user.is_authenticated and current_user.id == plan.creator_id %}
+                <div class="d-flex">
+                    <a href="{{ url_for('study_plans.edit_plan', plan_id=plan.id) }}" class="btn btn-primary me-2">
+                        <i class="fas fa-edit me-1"></i> Edit
+                    </a>
+                    <button id="deleteBtn" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i> Delete
+                    </button>
+                </div>
+                {% elif current_user.is_authenticated %}
+                <div>
+                    <button id="joinBtn" class="btn btn-success">
+                        <i class="fas fa-user-plus me-1"></i> Request to Join
+                    </button>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> You need to <a href="{{ url_for('auth.login') }}">login</a> to request joining this study plan.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if plan.group_id and is_member %}
+        <div class="card shadow mt-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Study Group</h5>
+            </div>
+            <div class="card-body">
+                <h5>Members</h5>
+                <div class="row mb-3" id="groupMembers">
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <h5>Messages</h5>
+                <div id="messageContainer" class="border rounded p-3 mb-3" style="height: 300px; overflow-y: auto;">
+                    <div class="d-flex justify-content-center h-100 align-items-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="messageForm">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="messageInput" placeholder="Type a message...">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-4">
+        {% if current_user.is_authenticated and current_user.id == plan.creator_id %}
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Join Requests</h5>
+            </div>
+            <div class="card-body">
+                <div id="joinRequests">
+                    <!-- Join requests will be populated here -->
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if plan.group_id and is_member %}
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Request Changes</h5>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs mb-3" id="changeRequestTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="location-tab" data-bs-toggle="tab" data-bs-target="#location" type="button" role="tab" aria-controls="location" aria-selected="true">Location</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="time-tab" data-bs-toggle="tab" data-bs-target="#time" type="button" role="tab" aria-controls="time" aria-selected="false">Time</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="changeRequestTabContent">
+                    <!-- Location Change Tab -->
+                    <div class="tab-pane fade show active" id="location" role="tabpanel" aria-labelledby="location-tab">
+                        <form id="locationChangeForm">
+                            <div class="mb-3">
+                                <label for="proposedLocation" class="form-label">Proposed Location</label>
+                                <input type="text" class="form-control" id="proposedLocation" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="locationChangeReason" class="form-label">Reason for Change</label>
+                                <textarea class="form-control" id="locationChangeReason" rows="3"></textarea>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-warning">Request Location Change</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Time Change Tab -->
+                    <div class="tab-pane fade" id="time" role="tabpanel" aria-labelledby="time-tab">
+                        <form id="timeChangeForm">
+                            <div class="mb-3">
+                                <label for="proposedStartTime" class="form-label">Proposed Start Time</label>
+                                <input type="text" class="form-control datetime-picker" id="proposedStartTime" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="proposedEndTime" class="form-label">Proposed End Time</label>
+                                <input type="text" class="form-control datetime-picker" id="proposedEndTime" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="timeChangeReason" class="form-label">Reason for Change</label>
+                                <textarea class="form-control" id="timeChangeReason" rows="3"></textarea>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-warning">Request Time Change</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div id="pendingChangeRequests">
+                    <!-- Pending change requests will be shown here -->
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Join Modal -->
+<div class="modal fade" id="joinModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Request to Join</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="joinRequestForm">
+                    <div class="mb-3">
+                        <label for="joinMessage" class="form-label">Message (Optional)</label>
+                        <textarea class="form-control" id="joinMessage" rows="3" placeholder="Let the organizer know why you want to join..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="submitJoinRequest">Submit Request</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this study plan? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Toast notification function
+    function showToast(message, type = 'success') {
+        const id = 'toast-' + Date.now();
+        const bgClass = type === 'success' ? 'bg-success' : 
+                        type === 'error' ? 'bg-danger' : 
+                        type === 'warning' ? 'bg-warning' : 'bg-info';
+        
+        const icon = type === 'success' ? '<i class="fas fa-check-circle me-2"></i>' : 
+                    type === 'error' ? '<i class="fas fa-exclamation-circle me-2"></i>' : 
+                    type === 'warning' ? '<i class="fas fa-exclamation-triangle me-2"></i>' : 
+                    '<i class="fas fa-info-circle me-2"></i>';
+        
+        const toast = `
+            <div id="${id}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${icon} ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        $('#toastContainer').append(toast);
+        const toastElement = new bootstrap.Toast(document.getElementById(id), {
+            autohide: true,
+            delay: 5000
+        });
+        toastElement.show();
+        
+        // Remove the toast element after it's hidden
+        $(`#${id}`).on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+    
+    {% if plan.group_id %}
+    // Load participants
+    loadParticipants();
+    {% endif %}
+    
+    {% if plan.group_id and is_member %}
+    // Load group members
+    loadGroupMembers();
+    
+    // Load messages
+    loadMessages();
+    
+    // Handle sending messages
+    $('#messageForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const message = $('#messageInput').val().trim();
+        if (!message) return;
+        
+        $.ajax({
+            url: "{{ url_for('groups.add_message', group_id=plan.group_id) }}",
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                content: message
+            }),
+            success: function(response) {
+                $('#messageInput').val('');
+                appendMessage(response);
+            },
+            error: function(xhr) {
+                showToast('Failed to send message. Please try again.', 'error');
+            }
+        });
+    });
+    
+    // Location change request
+    $('#locationChangeForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: "{{ url_for('groups.request_location_change', group_id=plan.group_id) }}",
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                proposed_location: $('#proposedLocation').val(),
+                reason: $('#locationChangeReason').val(),
+                study_plan_id: {{ plan.id }}
+            }),
+            success: function(response) {
+                showToast('Location change request submitted successfully.', 'success');
+                $('#locationChangeForm')[0].reset();
+                loadChangeRequests();
+            },
+            error: function(xhr) {
+                let error = 'An error occurred. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    error = xhr.responseJSON.error;
+                }
+                showToast(error, 'error');
+            }
+        });
+    });
+    
+    // Time change request
+    $('#timeChangeForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Check if dates are valid
+        const startTime = $('#proposedStartTime').val();
+        const endTime = $('#proposedEndTime').val();
+        
+        if (startTime >= endTime) {
+            showToast('End time must be after start time', 'error');
+            return;
+        }
+        
+        $.ajax({
+            url: "{{ url_for('study_plans.request_time_change', plan_id=plan.id) }}",
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                proposed_start_time: startTime,
+                proposed_end_time: endTime,
+                reason: $('#timeChangeReason').val()
+            }),
+            success: function(response) {
+                showToast('Time change request submitted successfully.', 'success');
+                $('#timeChangeForm')[0].reset();
+                loadChangeRequests();
+            },
+            error: function(xhr) {
+                let error = 'An error occurred. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    error = xhr.responseJSON.error;
+                }
+                showToast(error, 'error');
+            }
+        });
+    });
+    
+    // Load change requests
+    loadChangeRequests();
+    
+    // Function to load all change requests
+    function loadChangeRequests() {
+        $.ajax({
+            url: "{{ url_for('study_plans.get_change_requests', plan_id=plan.id) }}",
+            type: 'GET',
+            success: function(requests) {
+                const container = $('#pendingChangeRequests');
+                container.empty();
+                
+                if (requests.length === 0) {
+                    container.html('<div class="alert alert-info">No pending change requests</div>');
+                } else {
+                    requests.forEach(function(request) {
+                        if (request.status === 'pending') {
+                            let changeDetails = '';
+                            
+                            if (request.type === 'location') {
+                                changeDetails = `
+                                    <p><strong>Current Location:</strong> {{ plan.location }}</p>
+                                    <p><strong>Proposed Location:</strong> ${request.proposed_location}</p>
+                                `;
+                            } else if (request.type === 'time') {
+                                changeDetails = `
+                                    <p><strong>Current Time:</strong> {{ plan.start_time.strftime('%I:%M %p') }} - {{ plan.end_time.strftime('%I:%M %p') }}</p>
+                                    <p><strong>Proposed Time:</strong> ${new Date(request.proposed_start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - 
+                                    ${new Date(request.proposed_end_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                                `;
+                            }
+                            
+                            const requestHtml = `
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <span class="badge ${request.type === 'location' ? 'bg-primary' : 'bg-success'}">${request.type === 'location' ? 'Location' : 'Time'} Change</span>
+                                        <small class="text-muted float-end">${new Date(request.created_at).toLocaleDateString()}</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>Requested by: ${request.requester.name || request.requester.username}</h6>
+                                        ${changeDetails}
+                                        <p><strong>Reason:</strong> ${request.reason || 'No reason provided.'}</p>
+                                        {% if current_user.id == plan.creator_id %}
+                                        <div class="d-flex mt-3">
+                                            <button class="btn btn-sm btn-success me-2 approve-change" data-id="${request.id}" data-type="${request.type}">
+                                                <i class="fas fa-check me-1"></i> Approve
+                                            </button>
+                                            <button class="btn btn-sm btn-danger reject-change" data-id="${request.id}" data-type="${request.type}">
+                                                <i class="fas fa-times me-1"></i> Reject
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            `;
+                            
+                            container.append(requestHtml);
+                        }
+                    });
+                    
+                    // Handle approve/reject buttons
+                    $('.approve-change').on('click', function() {
+                        const requestId = $(this).data('id');
+                        const type = $(this).data('type');
+                        handleChangeRequest(requestId, type, 'approve');
+                    });
+                    
+                    $('.reject-change').on('click', function() {
+                        const requestId = $(this).data('id');
+                        const type = $(this).data('type');
+                        handleChangeRequest(requestId, type, 'reject');
+                    });
+                }
+            },
+            error: function() {
+                $('#pendingChangeRequests').html('<div class="alert alert-danger">Failed to load change requests</div>');
+            }
+        });
+    }
+    
+    function handleChangeRequest(requestId, type, action) {
+        let url = '';
+        if (type === 'location') {
+            url = "{{ url_for('groups.vote_location_change', request_id='') }}" + requestId;
+        } else {
+            url = "{{ url_for('study_plans.handle_time_change', request_id='') }}" + requestId + "/" + action;
+        }
+        
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                vote: action === 'approve'
+            }),
+            success: function() {
+                showToast(`Change request ${action}d successfully.`, 'success');
+                loadChangeRequests();
+                // Reload page if request was approved to see the changes
+                if (action === 'approve') {
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1500);
+                }
+            },
+            error: function() {
+                showToast(`Failed to ${action} the change request. Please try again.`, 'error');
+            }
+        });
+    }
+    {% endif %}
+    
+    {% if current_user.is_authenticated and current_user.id == plan.creator_id %}
+    // Load join requests
+    loadJoinRequests();
+    {% endif %}
+    
+    // Join button
+    $('#joinBtn').on('click', function() {
+        const joinModal = new bootstrap.Modal(document.getElementById('joinModal'));
+        joinModal.show();
+    });
+    
+    // Submit join request
+    $('#submitJoinRequest').on('click', function() {
+        $.ajax({
+            url: "{{ url_for('study_plans.request_to_join', plan_id=plan.id) }}",
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                message: $('#joinMessage').val()
+            }),
+            success: function(response) {
+                bootstrap.Modal.getInstance(document.getElementById('joinModal')).hide();
+                showToast('Your join request has been submitted successfully.', 'success');
+                $('#joinBtn').prop('disabled', true).html('<i class="fas fa-check me-1"></i> Request Sent');
+            },
+            error: function(xhr) {
+                let error = 'An error occurred. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    error = xhr.responseJSON.error;
+                }
+                showToast(error, 'error');
+            }
+        });
+    });
+    
+    // Delete button
+    $('#deleteBtn').on('click', function() {
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+    });
+    
+    // Confirm delete
+    $('#confirmDelete').on('click', function() {
+        $.ajax({
+            url: "{{ url_for('study_plans.delete_plan', plan_id=plan.id) }}",
+            type: 'DELETE',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            success: function(response) {
+                window.location.href = "{{ url_for('study_plans.list_plans') }}";
+            },
+            error: function() {
+                bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+                showToast('Failed to delete the study plan. Please try again.', 'error');
+            }
+        });
+    });
+    
+    // Copy share link
+    $('#copyLinkBtn').on('click', function() {
+        const shareLink = document.getElementById('shareLink');
+        shareLink.select();
+        document.execCommand('copy');
+        
+        // Show feedback
+        const originalText = $(this).html();
+        $(this).html('<i class="fas fa-check"></i>');
+        setTimeout(() => {
+            $(this).html(originalText);
+        }, 2000);
+    });
+    
+    // Functions to load group data
+    function loadParticipants() {
+        $.ajax({
+            url: "{{ url_for('groups.api_view_group', group_id=plan.group_id) if plan.group_id else '#' }}",
+            type: 'GET',
+            success: function(data) {
+                const participantsContainer = $('#participantsList');
+                participantsContainer.empty();
+                
+                // First add creator as the first participant
+                const creatorCard = `
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">{{ plan.creator.name or plan.creator.username }}</h6>
+                                    <small class="text-muted">Creator</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                participantsContainer.append(creatorCard);
+                
+                // Add other participants
+                data.members.forEach(function(member) {
+                    if (member.user_id != {{ plan.creator_id }}) { // Skip creator as we already added them
+                        const memberCard = `
+                            <div class="col-md-6 col-lg-4 mb-3 participant-card" data-user-id="${member.user_id}">
+                                <div class="card">
+                                    <div class="card-body d-flex align-items-center">
+                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">${member.name || member.username}</h6>
+                                            <small class="text-muted">Participant</small>
+                                        </div>
+                                        {% raw %}${{% endraw %}{{ current_user.id if current_user.is_authenticated else 0 }} == {{ plan.creator_id }}{% raw %} ? `{% endraw %}
+                                            <button class="btn btn-sm btn-outline-danger remove-participant" data-user-id="${member.user_id}">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        {% raw %}` : ''}{% endraw %}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        participantsContainer.append(memberCard);
+                    }
+                });
+                
+                // Add event handlers for remove buttons
+                $('.remove-participant').on('click', function() {
+                    const userId = $(this).data('user-id');
+                    removeParticipant(userId);
+                });
+            },
+            error: function() {
+                $('#participantsList').html('<div class="alert alert-danger">Failed to load participants</div>');
+            }
+        });
+    }
+    
+    function removeParticipant(userId) {
+        if (!confirm('Are you sure you want to remove this participant?')) {
+            return;
+        }
+        
+        $.ajax({
+            url: "{{ url_for('study_plans.remove_participant', plan_id=plan.id) }}",
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                user_id: userId
+            }),
+            success: function(response) {
+                showToast('Participant removed successfully', 'success');
+                loadParticipants();
+            },
+            error: function(xhr) {
+                let error = 'Failed to remove participant';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    error = xhr.responseJSON.error;
+                }
+                showToast(error, 'error');
+            }
+        });
+    }
+    
+    function loadGroupMembers() {
+        $.ajax({
+            url: "{{ url_for('groups.api_view_group', group_id=plan.group_id) if plan.group_id else '#' }}",
+            type: 'GET',
+            success: function(data) {
+                const membersContainer = $('#groupMembers');
+                membersContainer.empty();
+                
+                data.members.forEach(function(member) {
+                    const memberCard = `
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="rounded-circle bg-${member.is_admin ? 'primary' : 'secondary'} text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">${member.name || member.username}</h6>
+                                        <small class="text-muted">${member.is_admin ? 'Admin' : 'Member'}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    membersContainer.append(memberCard);
+                });
+            },
+            error: function() {
+                $('#groupMembers').html('<div class="alert alert-danger">Failed to load group members</div>');
+            }
+        });
+    }
+    
+    function loadMessages() {
+        $.ajax({
+            url: "{{ url_for('groups.get_messages', group_id=plan.group_id) if plan.group_id else '#' }}",
+            type: 'GET',
+            success: function(messages) {
+                const container = $('#messageContainer');
+                container.empty();
+                
+                if (messages.length === 0) {
+                    container.html('<div class="text-center text-muted py-5">No messages yet. Start the conversation!</div>');
+                } else {
+                    messages.forEach(function(message) {
+                        appendMessage(message);
+                    });
+                    
+                    // Scroll to bottom
+                    container.scrollTop(container[0].scrollHeight);
+                }
+            },
+            error: function() {
+                $('#messageContainer').html('<div class="alert alert-danger">Failed to load messages</div>');
+            }
+        });
+    }
+    
+    function appendMessage(message) {
+        const isCurrentUser = message.user_id === {{ current_user.id if current_user.is_authenticated else 0 }};
+        const messageHtml = `
+            <div class="mb-3 ${isCurrentUser ? 'text-end' : ''}">
+                <div class="d-inline-block ${isCurrentUser ? 'bg-primary text-white' : 'bg-light'} rounded p-2" style="max-width: 75%;">
+                    ${!isCurrentUser ? `<strong>${message.sender_name}</strong><br>` : ''}
+                    ${message.content}
+                    <br>
+                    <small class="${isCurrentUser ? 'text-light' : 'text-muted'}">${new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                </div>
+            </div>
+        `;
+        
+        $('#messageContainer').append(messageHtml);
+        $('#messageContainer').scrollTop($('#messageContainer')[0].scrollHeight);
+    }
+    
+    function loadJoinRequests() {
+        $.ajax({
+            url: "{{ url_for('study_plans.get_join_requests', plan_id=plan.id) }}",
+            type: 'GET',
+            success: function(requests) {
+                const container = $('#joinRequests');
+                container.empty();
+                
+                if (requests.length === 0) {
+                    container.html('<div class="alert alert-info">No pending join requests</div>');
+                } else {
+                    requests.forEach(function(request) {
+                        if (request.status === 'pending') {
+                            const requestHtml = `
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6>${request.user.name || request.user.username}</h6>
+                                        <p class="text-muted small">${new Date(request.created_at).toLocaleDateString()}</p>
+                                        <p>${request.message || 'No message provided.'}</p>
+                                        <div class="d-flex">
+                                            <button class="btn btn-sm btn-success me-2 approve-request" data-id="${request.id}">
+                                                <i class="fas fa-check me-1"></i> Approve
+                                            </button>
+                                            <button class="btn btn-sm btn-danger reject-request" data-id="${request.id}">
+                                                <i class="fas fa-times me-1"></i> Reject
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            container.append(requestHtml);
+                        }
+                    });
+                    
+                    // Handle approve/reject buttons
+                    $('.approve-request').on('click', function() {
+                        handleJoinRequest($(this).data('id'), 'approve');
+                    });
+                    
+                    $('.reject-request').on('click', function() {
+                        handleJoinRequest($(this).data('id'), 'reject');
+                    });
+                }
+            },
+            error: function() {
+                $('#joinRequests').html('<div class="alert alert-info">No pending join requests</div>');
+            }
+        });
+    }
+    
+    function handleJoinRequest(requestId, action) {
+        $.ajax({
+            url: "/study-plans/requests/" + requestId + "/" + action,
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            success: function() {
+                // Reload join requests and group members if needed
+                showToast(`Join request ${action === 'approve' ? 'approved' : 'rejected'} successfully.`, 'success');
+                loadJoinRequests();
+                if (action === 'approve' && "{{ plan.group_id }}" !== "") {
+                    loadGroupMembers();
+                }
+            },
+            error: function() {
+                showToast(`Failed to ${action} the join request. Please try again.`, 'error');
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

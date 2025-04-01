@@ -1,0 +1,178 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Create a New Study Group</h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4 text-muted">
+                        <i class="fas fa-info-circle me-2"></i> Create a new study group to collaborate with others. You can invite members after creation.
+                    </p>
+
+                    <form method="POST" action="{{ url_for('groups.create_group') }}">
+                        {{ form.csrf_token }}
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Group Name <span class="text-danger">*</span></label>
+                            {{ form.name(class="form-control", placeholder="Enter a descriptive name for your group", id="name") }}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="study_plan_id" class="form-label">Connect to Study Plan</label>
+                            {{ form.study_plan_id(class="form-select", id="study_plan_id") }}
+                            <div class="form-text">
+                                You can optionally connect this group to an existing study plan you created.
+                            </div>
+                            {% if form.study_plan_id.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.study_plan_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="privacy" class="form-label">Privacy Setting <span class="text-danger">*</span></label>
+                            {{ form.privacy(class="form-select", id="privacy") }}
+                            <div class="form-text">
+                                <ul class="mb-0 ps-3">
+                                    <li><strong>Public:</strong> Anyone can find and join your group</li>
+                                    <li><strong>Private:</strong> Only people with the invite link can join</li>
+                                </ul>
+                            </div>
+                            {% if form.privacy.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.privacy.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            {{ form.description(class="form-control", rows="4", placeholder="Describe what your group is about, topics you'll study, etc.", id="description") }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.description.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('groups.list_groups') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-users me-1"></i> Create Group
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i> Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li class="mb-2">Choose a descriptive name that reflects your study focus</li>
+                        <li class="mb-2">Creating a private group gives you more control over who joins</li>
+                        <li class="mb-2">You can connect study plans to your group later if you don't have one now</li>
+                        <li class="mb-2">As the creator, you'll automatically be the group admin</li>
+                        <li>You can invite members after creating the group</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i> Why Create a Group?</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-comments text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Group Chat</h6>
+                            <p class="mb-0 small text-muted">Communicate easily with all group members</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-calendar-alt text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Shared Study Plans</h6>
+                            <p class="mb-0 small text-muted">Create and manage study sessions together</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="fas fa-book text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Share Resources</h6>
+                            <p class="mb-0 small text-muted">Exchange study materials and helpful resources</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Show warning if user tries to leave with unsaved changes
+    let formChanged = false;
+    
+    $('form :input').on('change', function() {
+        formChanged = true;
+    });
+    
+    $('form').on('submit', function() {
+        formChanged = false;
+    });
+    
+    $(window).on('beforeunload', function() {
+        if (formChanged) {
+            return "You have unsaved changes. Are you sure you want to leave?";
+        }
+    });
+    
+    // Toggle additional options based on privacy setting
+    $('#privacy').on('change', function() {
+        const value = $(this).val();
+        
+        if (value === 'private') {
+            $('#privateOptions').removeClass('d-none');
+        } else {
+            $('#privateOptions').addClass('d-none');
+        }
+    });
+});
+</script>
+{% endblock %} 

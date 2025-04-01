@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row align-items-center">
+    <div class="col-lg-6">
+        <h1 class="display-4 fw-bold mb-4">Study Together</h1>
+        <p class="lead mb-4">Connect with other students, create study plans, and collaborate effectively. Join study sessions for subjects you're interested in or create your own and invite others!</p>
+        
+        <div class="d-grid gap-2 d-md-flex">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('study_plans.create_plan') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                <i class="fas fa-plus-circle"></i> Create a Study Plan
+            </a>
+            <a href="{{ url_for('study_plans.list_plans') }}" class="btn btn-outline-secondary btn-lg px-4">
+                <i class="fas fa-search"></i> Find Study Sessions
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                <i class="fas fa-user-plus"></i> Sign Up Now
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg px-4">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-lg-6 d-none d-lg-block">
+        <img src="{{ url_for('static', filename='images/study-group.svg') }}" alt="Study Together Illustration" class="img-fluid" width="600">
+    </div>
+</div>
+
+<div class="row mt-5 pt-5">
+    <div class="col-12 text-center mb-4">
+        <h2 class="fw-bold">How It Works</h2>
+        <p class="lead text-muted">Connect, collaborate, and excel in your studies</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-block mb-3">
+                    <i class="fas fa-calendar-plus text-primary fa-2x"></i>
+                </div>
+                <h5 class="card-title">Create Study Plans</h5>
+                <p class="card-text">Set up study sessions with details on subject, location, and time. Make them public or share via private links.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-success bg-opacity-10 p-3 d-inline-block mb-3">
+                    <i class="fas fa-users text-success fa-2x"></i>
+                </div>
+                <h5 class="card-title">Form Study Groups</h5>
+                <p class="card-text">Join existing study sessions or approve requests to your sessions, creating collaborative study groups.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-info bg-opacity-10 p-3 d-inline-block mb-3">
+                    <i class="fas fa-comments text-info fa-2x"></i>
+                </div>
+                <h5 class="card-title">Collaborate Effectively</h5>
+                <p class="card-text">Chat with group members, suggest location changes, and coordinate your study sessions efficiently.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if recent_plans %}
+<div class="row mt-5 pt-4">
+    <div class="col-12">
+        <h3 class="mb-4">Recent Study Plans</h3>
+        <div class="row g-4">
+            {% for plan in recent_plans %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ plan.title }}</h5>
+                        <span class="badge bg-primary mb-2">{{ plan.subject }}</span>
+                        <p class="card-text">{{ plan.description|truncate(100) }}</p>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                            <span>{{ plan.location }}</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="far fa-clock text-muted me-2"></i>
+                            <span>{{ plan.start_time|datetime }}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{{ url_for('study_plans.view_plan', plan_id=plan.id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

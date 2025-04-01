@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<!-- Toast container for notifications -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="toastContainer"></div>
+</div>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Sign In</h4>
+            </div>
+            <div class="card-body">
+                <div id="alertContainer"></div>
+                <form id="loginForm" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
+                        <label class="form-check-label" for="remember_me">Remember Me</label>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Sign In</button>
+                        <p class="text-center mt-3">
+                            <a href="#">Forgot Password?</a>
+                        </p>
+                    </div>
+                </form>
+                
+                <div class="mt-3 text-center">
+                    <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Sign Up</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Toast notification function
+    function showToast(message, type = 'success') {
+        const id = 'toast-' + Date.now();
+        const bgClass = type === 'success' ? 'bg-success' : 
+                        type === 'error' ? 'bg-danger' : 
+                        type === 'warning' ? 'bg-warning' : 'bg-info';
+        
+        const icon = type === 'success' ? '<i class="fas fa-check-circle me-2"></i>' : 
+                    type === 'error' ? '<i class="fas fa-exclamation-circle me-2"></i>' : 
+                    type === 'warning' ? '<i class="fas fa-exclamation-triangle me-2"></i>' : 
+                    '<i class="fas fa-info-circle me-2"></i>';
+        
+        const toast = `
+            <div id="${id}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${icon} ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        $('#toastContainer').append(toast);
+        const toastElement = new bootstrap.Toast(document.getElementById(id), {
+            autohide: true,
+            delay: 5000
+        });
+        toastElement.show();
+        
+        // Remove the toast element after it's hidden
+        $(`#${id}`).on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+
+    // Create a function to show error messages
+    function showFormError(message) {
+        // Remove any existing alerts first
+        $('#alertContainer').empty();
+        
+        // Display error message
+        const alertHtml = `
+            <div class="alert alert-danger alert-dismissible fade show">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        
+        $('#alertContainer').html(alertHtml);
+    }
+
+    $('#loginForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: "{{ url_for('auth.login') }}",
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                email: $('#email').val(),
+                password: $('#password').val(),
+                remember_me: $('#remember_me').is(':checked')
+            }),
+            success: function(response) {
+                if (response.success) {
+                    showToast('Login successful, redirecting...', 'success');
+                    setTimeout(function() {
+                        window.location.href = response.redirect || "{{ url_for('main.index') }}";
+                    }, 1000);
+                }
+            },
+            error: function(xhr) {
+                let error = 'An error occurred. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    error = xhr.responseJSON.error;
+                }
+                
+                showFormError(error);
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

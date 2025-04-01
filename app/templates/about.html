@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-5">
+                <h1 class="mb-4 text-primary fw-bold">About Study Together</h1>
+                
+                <p class="lead">Study Together is a collaborative platform designed to help students connect, organize study sessions, and excel academically through peer learning.</p>
+                
+                <hr class="my-4">
+                
+                <h2 class="h4 mb-3">Our Mission</h2>
+                <p>
+                    Our mission is to break down the barriers to collaborative learning and make it easy for students to find study partners for any subject. 
+                    We believe that studying together not only improves academic performance but also creates meaningful connections between students.
+                </p>
+                
+                <h2 class="h4 mb-3 mt-4">Why Study Together?</h2>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-users text-primary"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h3 class="h5 mb-1">Find Study Partners</h3>
+                                <p class="mb-0 text-muted">Connect with peers studying the same subjects to enhance your understanding through collaboration.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-success bg-opacity-10 p-3 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-calendar-check text-success"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h3 class="h5 mb-1">Organize Study Sessions</h3>
+                                <p class="mb-0 text-muted">Create and manage study plans with specific times, locations, and subjects.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-info bg-opacity-10 p-3 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-comments text-info"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h3 class="h5 mb-1">Communicate Effectively</h3>
+                                <p class="mb-0 text-muted">Use group chats to discuss study materials, share resources, and coordinate sessions.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="h4 mb-3 mt-4">Key Features</h2>
+                <ul class="list-group list-group-flush mb-4">
+                    <li class="list-group-item d-flex align-items-center py-3">
+                        <span class="badge bg-primary rounded-pill me-3">1</span>
+                        <div>
+                            <strong>Create Study Plans</strong>
+                            <div class="text-muted">Establish study sessions with specific details like subject, time, location, and maximum participants.</div>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center py-3">
+                        <span class="badge bg-primary rounded-pill me-3">2</span>
+                        <div>
+                            <strong>Public or Private Sharing</strong>
+                            <div class="text-muted">Make your study plans public for anyone to join, or share them privately via unique links.</div>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center py-3">
+                        <span class="badge bg-primary rounded-pill me-3">3</span>
+                        <div>
+                            <strong>Join Requests</strong>
+                            <div class="text-muted">Request to join existing study plans and get approved by the creator.</div>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center py-3">
+                        <span class="badge bg-primary rounded-pill me-3">4</span>
+                        <div>
+                            <strong>Study Groups</strong>
+                            <div class="text-muted">Automatically form study groups when plans are joined, with built-in messaging.</div>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center py-3">
+                        <span class="badge bg-primary rounded-pill me-3">5</span>
+                        <div>
+                            <strong>Location Changes</strong>
+                            <div class="text-muted">Propose and vote on location changes within your study group.</div>
+                        </div>
+                    </li>
+                </ul>
+                
+                <h2 class="h4 mb-3 mt-4">How It Works</h2>
+                <div class="card border-0 bg-light mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 text-center mb-3 mb-md-0">
+                                <div class="rounded-circle bg-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px">
+                                    <i class="fas fa-user-plus fa-2x text-primary"></i>
+                                </div>
+                                <h3 class="h5 mb-0">Sign Up</h3>
+                            </div>
+                            <div class="col-md-3 text-center mb-3 mb-md-0">
+                                <div class="rounded-circle bg-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px">
+                                    <i class="fas fa-search fa-2x text-primary"></i>
+                                </div>
+                                <h3 class="h5 mb-0">Find or Create</h3>
+                            </div>
+                            <div class="col-md-3 text-center mb-3 mb-md-0">
+                                <div class="rounded-circle bg-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px">
+                                    <i class="fas fa-handshake fa-2x text-primary"></i>
+                                </div>
+                                <h3 class="h5 mb-0">Join or Approve</h3>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="rounded-circle bg-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px">
+                                    <i class="fas fa-book-reader fa-2x text-primary"></i>
+                                </div>
+                                <h3 class="h5 mb-0">Study Together</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-5">
+                    <p class="mb-4">Ready to enhance your academic experience through collaborative studying?</p>
+                    <div class="d-grid d-md-inline-block">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5">Get Started Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

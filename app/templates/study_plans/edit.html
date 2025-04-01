@@ -1,0 +1,172 @@
+{% extends "layout.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block content %}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Edit Study Plan</h4>
+            </div>
+            <div class="card-body">
+                <form id="editPlanForm">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ plan.title }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="subject" name="subject" value="{{ plan.subject }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ plan.description }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ plan.location }}" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="start_time" class="form-label">Start Time</label>
+                            <input type="text" class="form-control datetime-picker" id="start_time" name="start_time" value="{{ plan.start_time.isoformat() }}" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="end_time" class="form-label">End Time</label>
+                            <input type="text" class="form-control datetime-picker" id="end_time" name="end_time" value="{{ plan.end_time.isoformat() }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="max_participants" class="form-label">Maximum Participants</label>
+                        <input type="number" class="form-control" id="max_participants" name="max_participants" min="2" value="{{ plan.max_participants }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="privacy" id="public" value="public" {% if plan.is_public %}checked{% endif %}>
+                            <label class="form-check-label" for="public">
+                                <i class="fas fa-globe me-1"></i> Public (Everyone can see it)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="privacy" id="private" value="private" {% if not plan.is_public %}checked{% endif %}>
+                            <label class="form-check-label" for="private">
+                                <i class="fas fa-lock me-1"></i> Private (Share by link only)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="shareLink" class="mb-3 {% if plan.is_public %}d-none{% endif %}">
+                        <div class="alert alert-info">
+                            <p><i class="fas fa-info-circle me-2"></i> {% if plan.share_link %}Share link: {{ url_for('study_plans.view_plan', plan_id=plan.id, token=plan.share_link, _external=True) }}{% else %}A unique share link will be generated after you save this plan.{% endif %}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('study_plans.view_plan', plan_id=plan.id) }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+$(document).ready(function() {
+    // Initialize datetime pickers
+    $(".datetime-picker").flatpickr({
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        minDate: "today"
+    });
+    
+    // Toggle share link info
+    $('input[name="privacy"]').change(function() {
+        if ($(this).val() === 'private') {
+            $('#shareLink').removeClass('d-none');
+        } else {
+            $('#shareLink').addClass('d-none');
+        }
+    });
+    
+    // Form submission
+    $('#editPlanForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Check if dates are valid
+        const startTime = $('#start_time').val();
+        const endTime = $('#end_time').val();
+        
+        if (startTime >= endTime) {
+            const alertHtml = `
+                <div class="alert alert-danger alert-dismissible fade show">
+                    End time must be after start time
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            $(alertHtml).insertBefore('#editPlanForm');
+            return;
+        }
+        
+        $.ajax({
+            url: "{{ url_for('study_plans.edit_plan', plan_id=plan.id) }}",
+            type: 'PUT',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                title: $('#title').val(),
+                subject: $('#subject').val(),
+                description: $('#description').val(),
+                location: $('#location').val(),
+                start_time: startTime,
+                end_time: endTime,
+                max_participants: $('#max_participants').val(),
+                is_public: $('input[name="privacy"]:checked').val() === 'public'
+            }),
+            success: function(response) {
+                if (response.success) {
+                    window.location.href = "{{ url_for('study_plans.view_plan', plan_id=plan.id) }}";
+                }
+            },
+            error: function(xhr) {
+                let error = 'An error occurred. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    error = xhr.responseJSON.error;
+                }
+                
+                // Display error message
+                const alertHtml = `
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        ${error}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                
+                $(alertHtml).insertBefore('#editPlanForm');
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

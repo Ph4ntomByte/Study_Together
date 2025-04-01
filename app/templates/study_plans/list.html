@@ -1,0 +1,207 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Study Plans</h1>
+    
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('study_plans.create_plan') }}" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-2"></i> Create Plan
+    </a>
+    {% endif %}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="input-group">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search by title, subject, or location...">
+            <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <select id="subjectFilter" class="form-select">
+            <option value="">All Subjects</option>
+            <!-- Subjects will be dynamically populated -->
+        </select>
+    </div>
+</div>
+
+<div id="plansContainer" class="row g-4">
+    <!-- Study plans will be loaded here -->
+</div>
+
+<div id="noResults" class="alert alert-info mt-4 d-none">
+    <i class="fas fa-info-circle me-2"></i> No study plans found matching your criteria.
+</div>
+
+<div id="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading study plans...</p>
+</div>
+
+<!-- Study Plan Card Template -->
+<template id="planCardTemplate">
+    <div class="col-md-6 col-lg-4 plan-card">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title plan-title"></h5>
+                <span class="badge bg-primary mb-2 plan-subject"></span>
+                <p class="card-text plan-description"></p>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                    <span class="plan-location"></span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="far fa-clock text-muted me-2"></i>
+                    <span class="plan-time"></span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-user text-muted me-2"></i>
+                    <span class="plan-creator"></span>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="d-grid">
+                    <a href="#" class="btn btn-outline-primary btn-sm plan-link">View Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    let allPlans = [];
+    let subjects = new Set();
+    
+    // Load study plans
+    $.ajax({
+        url: "{{ url_for('study_plans.api_list_plans') }}",
+        type: 'GET',
+        success: function(data) {
+            $('#loading').hide();
+            allPlans = data;
+            
+            if (allPlans.length === 0) {
+                $('#noResults').removeClass('d-none');
+            } else {
+                renderPlans(allPlans);
+                populateSubjects(allPlans);
+            }
+        },
+        error: function() {
+            $('#loading').hide();
+            alert('Failed to load study plans. Please try again later.');
+        }
+    });
+    
+    // Render plans to the page
+    function renderPlans(plans) {
+        const container = $('#plansContainer');
+        container.empty();
+        
+        if (plans.length === 0) {
+            $('#noResults').removeClass('d-none');
+        } else {
+            $('#noResults').addClass('d-none');
+            
+            plans.forEach(function(plan) {
+                const template = document.getElementById('planCardTemplate');
+                const clone = document.importNode(template.content, true);
+                
+                // Fill in the template with plan data
+                clone.querySelector('.plan-title').textContent = plan.title;
+                clone.querySelector('.plan-subject').textContent = plan.subject;
+                clone.querySelector('.plan-description').textContent = plan.description 
+                    ? (plan.description.length > 100 ? plan.description.substr(0, 100) + '...' : plan.description)
+                    : 'No description provided';
+                clone.querySelector('.plan-location').textContent = plan.location;
+                
+                // Format date
+                const startDate = new Date(plan.start_time);
+                const endDate = new Date(plan.end_time);
+                const formattedDate = startDate.toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                const formattedTime = `${startDate.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                })} - ${endDate.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                })}`;
+                
+                clone.querySelector('.plan-time').textContent = `${formattedDate}, ${formattedTime}`;
+                clone.querySelector('.plan-creator').textContent = plan.creator 
+                    ? plan.creator.name || plan.creator.username 
+                    : 'Anonymous';
+                
+                // Set the link to the plan details page - FIX: Use string concatenation with base URL path
+                clone.querySelector('.plan-link').href = "/study-plans/" + plan.id;
+                
+                container.append(clone);
+            });
+        }
+    }
+    
+    // Populate subject filter dropdown
+    function populateSubjects(plans) {
+        const subjectSelect = $('#subjectFilter');
+        
+        plans.forEach(function(plan) {
+            subjects.add(plan.subject);
+        });
+        
+        subjects.forEach(function(subject) {
+            subjectSelect.append(`<option value="${subject}">${subject}</option>`);
+        });
+    }
+    
+    // Search and filter functionality
+    $('#searchButton, #searchInput').on('click keyup', function(e) {
+        if (e.type === 'keyup' && e.keyCode !== 13) return;
+        
+        const searchTerm = $('#searchInput').val().toLowerCase();
+        const subjectFilter = $('#subjectFilter').val();
+        
+        filterPlans(searchTerm, subjectFilter);
+    });
+    
+    $('#subjectFilter').on('change', function() {
+        const searchTerm = $('#searchInput').val().toLowerCase();
+        const subjectFilter = $(this).val();
+        
+        filterPlans(searchTerm, subjectFilter);
+    });
+    
+    function filterPlans(searchTerm, subjectFilter) {
+        let filteredPlans = allPlans;
+        
+        // Apply subject filter
+        if (subjectFilter) {
+            filteredPlans = filteredPlans.filter(plan => plan.subject === subjectFilter);
+        }
+        
+        // Apply search filter
+        if (searchTerm) {
+            filteredPlans = filteredPlans.filter(plan => 
+                plan.title.toLowerCase().includes(searchTerm) ||
+                plan.subject.toLowerCase().includes(searchTerm) ||
+                plan.location.toLowerCase().includes(searchTerm) ||
+                (plan.description && plan.description.toLowerCase().includes(searchTerm))
+            );
+        }
+        
+        renderPlans(filteredPlans);
+    }
+});
+</script>
+{% endblock %} 
