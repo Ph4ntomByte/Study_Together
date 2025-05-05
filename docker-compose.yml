@@ -1,19 +1,13 @@
-version: '3'
+version: "3.9"
 
 services:
-  # Option 1: Using SQLite with volume
-  app-sqlite:
+  web:
     build: .
     ports:
       - "5000:5000"
-    environment:
-      - FLASK_APP=main.py
-      - FLASK_DEBUG=false
-      - SQLITE_PATH=/data/app.db
     volumes:
-      - sqlite-data:/data
-    restart: unless-stopped
-
-
-volumes:
-  sqlite-data:
+      - ./:/app
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_RUN_HOST=0.0.0.0
+      - FLASK_ENV=development
