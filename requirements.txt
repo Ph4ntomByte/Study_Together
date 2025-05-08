@@ -22,11 +22,11 @@ MarkupSafe==3.0.2
 packaging==25.0
 PyJWT==2.8.0
 python-dotenv==1.0.0
-requests==2.31.0
+requests==2.32.0
 serverless-wsgi==3.0.2
 SQLAlchemy==2.0.28
 typing_extensions==4.13.2
 urllib3==2.4.0
-Werkzeug==2.2.3
+Werkzeug==3.0.6
 WTForms==3.2.1
 zipp==3.21.0
