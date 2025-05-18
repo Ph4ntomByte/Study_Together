@@ -62,13 +62,15 @@
                     <h5 class="mb-0"><i class="fas fa-link me-2"></i> Have an Invite?</h5>
                 </div>
                 <div class="card-body">
+                    <div id="alertContainer"></div>
                     <p class="text-muted">
                         If you have an invite code for a private group, enter it here to join.
                     </p>
-                    <form id="invite-form">
+                    <form id="inviteForm">
                         <div class="mb-3">
                             <label for="inviteCode" class="form-label">Invite Code</label>
-                            <input type="text" class="form-control" id="inviteCode" placeholder="Enter code (e.g., ABC123)">
+                            <input type="text" class="form-control" id="inviteCode" placeholder="Enter code (e.g., ABC123)" required>
+                            <div class="form-text">Enter the invite code you received (6-20 characters)</div>
                         </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-info">
@@ -195,6 +197,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/validation.js') }}"></script>
 <script>
 $(document).ready(function() {
     let currentPage = 1;
@@ -232,32 +235,94 @@ $(document).ready(function() {
         }, 10);
     });
     
-    // Handle invite form submission
-    $('#invite-form').on('submit', function(e) {
-        e.preventDefault();
-        const inviteCode = $('#inviteCode').val().trim();
+    // Function to show toast notifications
+    function showToast(message, type = 'success') {
+        const id = 'toast-' + Date.now();
+        const toastHtml = `
+            <div id="${id}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        $('#toastContainer').append(toastHtml);
+        
+        const toastElement = new bootstrap.Toast(document.getElementById(id), {
+            autohide: true,
+            delay: 5000
+        });
+        toastElement.show();
+        
+        $(`#${id}`).on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+
+    // Create a function to show error messages
+    function showFormError(message) {
+        validation.showError('alertContainer', message);
+    }
+
+    // Clear error messages
+    function clearErrors() {
+        validation.clearError('alertContainer');
+    }
+
+    // Validate form fields
+    function validateForm() {
+        clearErrors();
+        
+        const inviteCode = $('#inviteCode').val();
         
         if (!inviteCode) {
-            alert('Please enter an invite code');
+            showFormError('Please enter an invite code');
+            return false;
+        }
+        
+        if (inviteCode.length < 6 || inviteCode.length > 20) {
+            showFormError('Invite code must be between 6 and 20 characters');
+            return false;
+        }
+        
+        return true;
+    }
+
+    $('#inviteForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        if (!validateForm()) {
             return;
         }
         
-        // Send join request with invite code
         $.ajax({
-            url: "/api/groups/join-by-code",
+            url: "{{ url_for('groups.join_with_code') }}",
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ code: inviteCode }),
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                invite_code: $('#inviteCode').val()
+            }),
             success: function(response) {
-                // Redirect to the group page
-                window.location.href = "/groups/" + response.group_id;
+                if (response.success) {
+                    showToast('Successfully joined the group', 'success');
+                    setTimeout(function() {
+                        window.location.href = response.redirect || "{{ url_for('groups.list_groups') }}";
+                    }, 1000);
+                }
             },
             error: function(xhr) {
-                let error = 'Invalid or expired invite code.';
+                let error = 'An error occurred. Please try again.';
                 if (xhr.responseJSON && xhr.responseJSON.error) {
                     error = xhr.responseJSON.error;
                 }
-                alert(error);
+                
+                showFormError(error);
             }
         });
     });

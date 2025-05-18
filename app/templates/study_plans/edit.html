@@ -13,25 +13,30 @@
                 <h4 class="mb-0">Edit Study Plan</h4>
             </div>
             <div class="card-body">
+                <div id="alertContainer"></div>
                 <form id="editPlanForm">
                     <div class="mb-3">
                         <label for="title" class="form-label">Title</label>
                         <input type="text" class="form-control" id="title" name="title" value="{{ plan.title }}" required>
+                        <div class="form-text">Enter a descriptive title for your study plan (2-100 characters)</div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="subject" class="form-label">Subject</label>
                         <input type="text" class="form-control" id="subject" name="subject" value="{{ plan.subject }}" required>
+                        <div class="form-text">Enter the subject you'll be studying (2-100 characters)</div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
                         <textarea class="form-control" id="description" name="description" rows="3">{{ plan.description }}</textarea>
+                        <div class="form-text">Optional: Describe what you'll be studying (max 1000 characters)</div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="location" class="form-label">Location</label>
                         <input type="text" class="form-control" id="location" name="location" value="{{ plan.location }}" required>
+                        <div class="form-text">Enter where you'll be studying (2-200 characters)</div>
                     </div>
                     
                     <div class="row">
@@ -49,27 +54,7 @@
                     <div class="mb-3">
                         <label for="max_participants" class="form-label">Maximum Participants</label>
                         <input type="number" class="form-control" id="max_participants" name="max_participants" min="2" value="{{ plan.max_participants }}">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="privacy" id="public" value="public" {% if plan.is_public %}checked{% endif %}>
-                            <label class="form-check-label" for="public">
-                                <i class="fas fa-globe me-1"></i> Public (Everyone can see it)
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="privacy" id="private" value="private" {% if not plan.is_public %}checked{% endif %}>
-                            <label class="form-check-label" for="private">
-                                <i class="fas fa-lock me-1"></i> Private (Share by link only)
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div id="shareLink" class="mb-3 {% if plan.is_public %}d-none{% endif %}">
-                        <div class="alert alert-info">
-                            <p><i class="fas fa-info-circle me-2"></i> {% if plan.share_link %}Share link: {{ url_for('study_plans.view_plan', plan_id=plan.id, token=plan.share_link, _external=True) }}{% else %}A unique share link will be generated after you save this plan.{% endif %}</p>
-                        </div>
+                        <div class="form-text">Minimum 2 participants, maximum 50</div>
                     </div>
                     
                     <div class="d-flex justify-content-between">
@@ -88,6 +73,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/validation.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
 $(document).ready(function() {
@@ -98,38 +84,103 @@ $(document).ready(function() {
         minDate: "today"
     });
     
-    // Toggle share link info
-    $('input[name="privacy"]').change(function() {
-        if ($(this).val() === 'private') {
-            $('#shareLink').removeClass('d-none');
-        } else {
-            $('#shareLink').addClass('d-none');
+    // Function to show toast notifications
+    function showToast(message, type = 'success') {
+        const id = 'toast-' + Date.now();
+        const toastHtml = `
+            <div id="${id}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        $('#toastContainer').append(toastHtml);
+        
+        const toastElement = new bootstrap.Toast(document.getElementById(id), {
+            autohide: true,
+            delay: 5000
+        });
+        toastElement.show();
+        
+        $(`#${id}`).on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+
+    // Create a function to show error messages
+    function showFormError(message) {
+        validation.showError('alertContainer', message);
+    }
+
+    // Clear error messages
+    function clearErrors() {
+        validation.clearError('alertContainer');
+    }
+
+    // Validate form fields
+    function validateForm() {
+        clearErrors();
+        
+        const title = $('#title').val();
+        const subject = $('#subject').val();
+        const description = $('#description').val();
+        const location = $('#location').val();
+        const startTime = $('#start_time').val();
+        const endTime = $('#end_time').val();
+        const maxParticipants = $('#max_participants').val();
+        
+        if (!validation.isValidSubject(title)) {
+            showFormError('Please enter a valid title (2-100 characters)');
+            return false;
         }
-    });
-    
-    // Form submission
+        
+        if (!validation.isValidSubject(subject)) {
+            showFormError('Please enter a valid subject (2-100 characters)');
+            return false;
+        }
+        
+        if (description && !validation.isValidDescription(description)) {
+            showFormError('Description must be 1000 characters or less');
+            return false;
+        }
+        
+        if (!validation.isValidLocation(location)) {
+            showFormError('Please enter a valid location (2-200 characters)');
+            return false;
+        }
+        
+        if (!startTime || !endTime) {
+            showFormError('Please select both start and end times');
+            return false;
+        }
+        
+        if (!validation.isValidDateRange(startTime, endTime)) {
+            showFormError('End time must be after start time');
+            return false;
+        }
+        
+        if (!validation.isValidNumber(maxParticipants, 2, 50)) {
+            showFormError('Maximum participants must be between 2 and 50');
+            return false;
+        }
+        
+        return true;
+    }
+
     $('#editPlanForm').on('submit', function(e) {
         e.preventDefault();
         
-        // Check if dates are valid
-        const startTime = $('#start_time').val();
-        const endTime = $('#end_time').val();
-        
-        if (startTime >= endTime) {
-            const alertHtml = `
-                <div class="alert alert-danger alert-dismissible fade show">
-                    End time must be after start time
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
-            
-            $(alertHtml).insertBefore('#editPlanForm');
+        if (!validateForm()) {
             return;
         }
         
         $.ajax({
             url: "{{ url_for('study_plans.edit_plan', plan_id=plan.id) }}",
-            type: 'PUT',
+            type: 'POST',
             contentType: 'application/json',
             headers: {
                 'X-CSRFToken': $('input[name="csrf_token"]').val()
@@ -139,14 +190,16 @@ $(document).ready(function() {
                 subject: $('#subject').val(),
                 description: $('#description').val(),
                 location: $('#location').val(),
-                start_time: startTime,
-                end_time: endTime,
-                max_participants: $('#max_participants').val(),
-                is_public: $('input[name="privacy"]:checked').val() === 'public'
+                start_time: $('#start_time').val(),
+                end_time: $('#end_time').val(),
+                max_participants: $('#max_participants').val()
             }),
             success: function(response) {
                 if (response.success) {
-                    window.location.href = "{{ url_for('study_plans.view_plan', plan_id=plan.id) }}";
+                    showToast('Study plan updated successfully', 'success');
+                    setTimeout(function() {
+                        window.location.href = response.redirect || "{{ url_for('study_plans.view_plan', plan_id=plan.id) }}";
+                    }, 1000);
                 }
             },
             error: function(xhr) {
@@ -155,15 +208,7 @@ $(document).ready(function() {
                     error = xhr.responseJSON.error;
                 }
                 
-                // Display error message
-                const alertHtml = `
-                    <div class="alert alert-danger alert-dismissible fade show">
-                        ${error}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                `;
-                
-                $(alertHtml).insertBefore('#editPlanForm');
+                showFormError(error);
             }
         });
     });

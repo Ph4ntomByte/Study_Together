@@ -18,6 +18,7 @@
                     <div class="mb-3">
                         <label for="name" class="form-label">Full Name</label>
                         <input type="text" class="form-control" id="name" name="name" required>
+                        <div class="form-text">Enter your full name (2-50 characters, letters and spaces only)</div>
                     </div>
                     <div class="mb-3">
                         <label for="email" class="form-label">Email Address</label>
@@ -27,23 +28,24 @@
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
                         <input type="text" class="form-control" id="username" name="username" required>
+                        <div class="form-text">3-20 characters, letters, numbers, and underscores only</div>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="form-text">Minimum 8 characters, at least one uppercase letter, one lowercase letter, and one number</div>
                     </div>
                     <div class="mb-3">
                         <label for="password2" class="form-label">Confirm Password</label>
                         <input type="password" class="form-control" id="password2" name="password2" required>
                     </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Sign Up</button>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                        <p class="text-center mt-3">
+                            Already have an account? <a href="{{ url_for('auth.login') }}">Sign In</a>
+                        </p>
                     </div>
                 </form>
-                
-                <div class="mt-3 text-center">
-                    <p>Already have an account? <a href="{{ url_for('auth.login') }}">Sign In</a></p>
-                </div>
             </div>
         </div>
     </div>
@@ -51,39 +53,31 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/validation.js') }}"></script>
 <script>
 $(document).ready(function() {
-    // Toast notification function
+    // Function to show toast notifications
     function showToast(message, type = 'success') {
         const id = 'toast-' + Date.now();
-        const bgClass = type === 'success' ? 'bg-success' : 
-                        type === 'error' ? 'bg-danger' : 
-                        type === 'warning' ? 'bg-warning' : 'bg-info';
-        
-        const icon = type === 'success' ? '<i class="fas fa-check-circle me-2"></i>' : 
-                    type === 'error' ? '<i class="fas fa-exclamation-circle me-2"></i>' : 
-                    type === 'warning' ? '<i class="fas fa-exclamation-triangle me-2"></i>' : 
-                    '<i class="fas fa-info-circle me-2"></i>';
-        
-        const toast = `
-            <div id="${id}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        const toastHtml = `
+            <div id="${id}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex">
                     <div class="toast-body">
-                        ${icon} ${message}
+                        ${message}
                     </div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
             </div>
         `;
         
-        $('#toastContainer').append(toast);
+        $('#toastContainer').append(toastHtml);
+        
         const toastElement = new bootstrap.Toast(document.getElementById(id), {
             autohide: true,
             delay: 5000
         });
         toastElement.show();
         
-        // Remove the toast element after it's hidden
         $(`#${id}`).on('hidden.bs.toast', function() {
             $(this).remove();
         });
@@ -91,26 +85,56 @@ $(document).ready(function() {
 
     // Create a function to show error messages
     function showFormError(message) {
-        // Remove any existing alerts first
-        $('#alertContainer').empty();
+        validation.showError('alertContainer', message);
+    }
+
+    // Clear error messages
+    function clearErrors() {
+        validation.clearError('alertContainer');
+    }
+
+    // Validate form fields
+    function validateForm() {
+        clearErrors();
         
-        // Display error message
-        const alertHtml = `
-            <div class="alert alert-danger alert-dismissible fade show">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        `;
+        const name = $('#name').val();
+        const email = $('#email').val();
+        const username = $('#username').val();
+        const password = $('#password').val();
+        const password2 = $('#password2').val();
         
-        $('#alertContainer').html(alertHtml);
+        if (!validation.isValidName(name)) {
+            showFormError('Please enter a valid name (2-50 characters, letters and spaces only)');
+            return false;
+        }
+        
+        if (!validation.isValidEmail(email)) {
+            showFormError('Please enter a valid email address');
+            return false;
+        }
+        
+        if (!validation.isValidUsername(username)) {
+            showFormError('Username must be 3-20 characters and contain only letters, numbers, and underscores');
+            return false;
+        }
+        
+        if (!validation.isValidPassword(password)) {
+            showFormError('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
+            return false;
+        }
+        
+        if (password !== password2) {
+            showFormError('Passwords do not match');
+            return false;
+        }
+        
+        return true;
     }
 
     $('#registerForm').on('submit', function(e) {
         e.preventDefault();
         
-        // Basic validation
-        if ($('#password').val() !== $('#password2').val()) {
-            showFormError('Passwords do not match');
+        if (!validateForm()) {
             return;
         }
         

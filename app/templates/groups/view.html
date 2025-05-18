@@ -122,13 +122,14 @@
                     {% endif %}
                 </div>
                 <div class="p-3 border-top">
-                    <form id="chat-form">
+                    <form id="chatForm">
                         <div class="input-group">
-                            <input type="text" id="message-input" class="form-control" placeholder="Type your message..." required>
+                            <input type="text" id="messageInput" class="form-control" placeholder="Type your message..." required>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
                         </div>
+                        <div class="form-text">Messages must be between 1 and 500 characters</div>
                     </form>
                 </div>
             </div>
@@ -227,51 +228,117 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/validation.js') }}"></script>
 <script>
 $(document).ready(function() {
-    // Scroll to bottom of chat
-    const chatMessages = document.getElementById('chat-messages');
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    
-    // Send message
-    $('#chat-form').on('submit', function(e) {
+    // Function to show toast notifications
+    function showToast(message, type = 'success') {
+        const id = 'toast-' + Date.now();
+        const toastHtml = `
+            <div id="${id}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        $('#toastContainer').append(toastHtml);
+        
+        const toastElement = new bootstrap.Toast(document.getElementById(id), {
+            autohide: true,
+            delay: 5000
+        });
+        toastElement.show();
+        
+        $(`#${id}`).on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+
+    // Create a function to show error messages
+    function showFormError(message) {
+        validation.showError('alertContainer', message);
+    }
+
+    // Clear error messages
+    function clearErrors() {
+        validation.clearError('alertContainer');
+    }
+
+    // Validate form fields
+    function validateForm() {
+        clearErrors();
+        
+        const message = $('#messageInput').val();
+        
+        if (!message) {
+            showFormError('Please enter a message');
+            return false;
+        }
+        
+        if (!validation.isValidMessage(message)) {
+            showFormError('Message must be between 1 and 500 characters');
+            return false;
+        }
+        
+        return true;
+    }
+
+    $('#chatForm').on('submit', function(e) {
         e.preventDefault();
         
-        const message = $('#message-input').val().trim();
-        if (!message) return;
+        if (!validateForm()) {
+            return;
+        }
         
         $.ajax({
-            url: "{{ url_for('groups.add_message', group_id=group.id) }}",
+            url: "{{ url_for('groups.send_message', group_id=group.id) }}",
             type: 'POST',
             contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
             data: JSON.stringify({
-                content: message
+                message: $('#messageInput').val()
             }),
             success: function(response) {
-                // Clear input
-                $('#message-input').val('');
-                
-                // Add message to the chat
-                const messageHtml = `
-                    <div class="mb-3 text-end">
-                        <div class="d-inline-block bg-primary text-white rounded p-2" style="max-width: 75%;">
-                            ${response.content}
-                            <br>
-                            <small class="text-light">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+                if (response.success) {
+                    $('#messageInput').val('');
+                    // Add the new message to the chat
+                    const messageHtml = `
+                        <div class="message ${response.is_own ? 'own' : ''}">
+                            <div class="message-header">
+                                <strong>${response.sender}</strong>
+                                <small>${response.timestamp}</small>
+                            </div>
+                            <div class="message-content">
+                                ${response.message}
+                            </div>
                         </div>
-                    </div>
-                `;
-                
-                $('#chat-messages').append(messageHtml);
-                
-                // Scroll to bottom
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                    `;
+                    $('#chat-messages').append(messageHtml);
+                    // Scroll to bottom
+                    const chatContainer = document.getElementById('chat-messages');
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
             },
-            error: function() {
-                alert('Failed to send message. Please try again.');
+            error: function(xhr) {
+                let error = 'An error occurred. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    error = xhr.responseJSON.error;
+                }
+                
+                showFormError(error);
             }
         });
     });
+
+    // Scroll to bottom of chat
+    const chatMessages = document.getElementById('chat-messages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
     
     // Location change request
     $('#location-change-form').on('submit', function(e) {

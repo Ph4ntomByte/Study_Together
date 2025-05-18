@@ -45,39 +45,31 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/validation.js') }}"></script>
 <script>
 $(document).ready(function() {
-    // Toast notification function
+    // Function to show toast notifications
     function showToast(message, type = 'success') {
         const id = 'toast-' + Date.now();
-        const bgClass = type === 'success' ? 'bg-success' : 
-                        type === 'error' ? 'bg-danger' : 
-                        type === 'warning' ? 'bg-warning' : 'bg-info';
-        
-        const icon = type === 'success' ? '<i class="fas fa-check-circle me-2"></i>' : 
-                    type === 'error' ? '<i class="fas fa-exclamation-circle me-2"></i>' : 
-                    type === 'warning' ? '<i class="fas fa-exclamation-triangle me-2"></i>' : 
-                    '<i class="fas fa-info-circle me-2"></i>';
-        
-        const toast = `
-            <div id="${id}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        const toastHtml = `
+            <div id="${id}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex">
                     <div class="toast-body">
-                        ${icon} ${message}
+                        ${message}
                     </div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
             </div>
         `;
         
-        $('#toastContainer').append(toast);
+        $('#toastContainer').append(toastHtml);
+        
         const toastElement = new bootstrap.Toast(document.getElementById(id), {
             autohide: true,
             delay: 5000
         });
         toastElement.show();
         
-        // Remove the toast element after it's hidden
         $(`#${id}`).on('hidden.bs.toast', function() {
             $(this).remove();
         });
@@ -85,22 +77,40 @@ $(document).ready(function() {
 
     // Create a function to show error messages
     function showFormError(message) {
-        // Remove any existing alerts first
-        $('#alertContainer').empty();
+        validation.showError('alertContainer', message);
+    }
+
+    // Clear error messages
+    function clearErrors() {
+        validation.clearError('alertContainer');
+    }
+
+    // Validate form fields
+    function validateForm() {
+        clearErrors();
         
-        // Display error message
-        const alertHtml = `
-            <div class="alert alert-danger alert-dismissible fade show">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        `;
+        const email = $('#email').val();
+        const password = $('#password').val();
         
-        $('#alertContainer').html(alertHtml);
+        if (!validation.isValidEmail(email)) {
+            showFormError('Please enter a valid email address');
+            return false;
+        }
+        
+        if (!password) {
+            showFormError('Please enter your password');
+            return false;
+        }
+        
+        return true;
     }
 
     $('#loginForm').on('submit', function(e) {
         e.preventDefault();
+        
+        if (!validateForm()) {
+            return;
+        }
         
         $.ajax({
             url: "{{ url_for('auth.login') }}",
