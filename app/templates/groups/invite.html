@@ -41,9 +41,7 @@
                                         <div class="mb-3">
                                             <label for="emails" class="form-label">Email Addresses <span class="text-danger">*</span></label>
                                             {{ form.emails(class="form-control", rows="3", placeholder="Enter email addresses, one per line", id="emails") }}
-                                            <div class="form-text">
-                                                Enter one email address per line
-                                            </div>
+                                            <div class="form-text">Enter one email address per line (up to 10 emails)</div>
                                             {% if form.emails.errors %}
                                                 <div class="invalid-feedback d-block">
                                                     {% for error in form.emails.errors %}
@@ -56,6 +54,7 @@
                                         <div class="mb-3">
                                             <label for="message" class="form-label">Personal Message</label>
                                             {{ form.message(class="form-control", rows="3", placeholder="Add a personal message to your invitation", id="message") }}
+                                            <div class="form-text">Optional: Add a personal message to your invitation (max 500 characters)</div>
                                             {% if form.message.errors %}
                                                 <div class="invalid-feedback d-block">
                                                     {% for error in form.message.errors %}
@@ -65,7 +64,10 @@
                                             {% endif %}
                                         </div>
                                         
-                                        <div class="d-grid">
+                                        <div class="d-flex justify-content-between">
+                                            <a href="{{ url_for('groups.view_group', group_id=group.id) }}" class="btn btn-outline-secondary">
+                                                <i class="fas fa-arrow-left me-1"></i> Back
+                                            </a>
                                             <button type="submit" class="btn btn-primary">
                                                 <i class="fas fa-paper-plane me-1"></i> Send Invitations
                                             </button>
@@ -288,6 +290,7 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="{{ url_for('static', filename='js/validation.js') }}"></script>
 <script>
 $(document).ready(function() {
     // Generate QR code
@@ -487,6 +490,112 @@ $(document).ready(function() {
                 });
             }
         );
+    });
+
+    // Function to show toast notifications
+    function showToast(message, type = 'success') {
+        const id = 'toast-' + Date.now();
+        const toastHtml = `
+            <div id="${id}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        $('#toastContainer').append(toastHtml);
+        
+        const toastElement = new bootstrap.Toast(document.getElementById(id), {
+            autohide: true,
+            delay: 5000
+        });
+        toastElement.show();
+        
+        $(`#${id}`).on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+
+    // Create a function to show error messages
+    function showFormError(message) {
+        validation.showError('alertContainer', message);
+    }
+
+    // Clear error messages
+    function clearErrors() {
+        validation.clearError('alertContainer');
+    }
+
+    // Validate form fields
+    function validateForm() {
+        clearErrors();
+        
+        const emails = $('#emails').val().split('\n').map(email => email.trim()).filter(email => email);
+        const message = $('#message').val();
+        
+        if (emails.length === 0) {
+            showFormError('Please enter at least one email address');
+            return false;
+        }
+        
+        if (emails.length > 10) {
+            showFormError('You can only invite up to 10 members at once');
+            return false;
+        }
+        
+        for (const email of emails) {
+            if (!validation.isValidEmail(email)) {
+                showFormError(`Invalid email address: ${email}`);
+                return false;
+            }
+        }
+        
+        if (message && !validation.isValidMessage(message)) {
+            showFormError('Message must be 500 characters or less');
+            return false;
+        }
+        
+        return true;
+    }
+
+    $('#invite-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        if (!validateForm()) {
+            return;
+        }
+        
+        $.ajax({
+            url: "{{ url_for('groups.invite_members', group_id=group.id) }}",
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': $('input[name="csrf_token"]').val()
+            },
+            data: JSON.stringify({
+                emails: $('#emails').val().split('\n').map(email => email.trim()).filter(email => email),
+                message: $('#message').val()
+            }),
+            success: function(response) {
+                if (response.success) {
+                    showToast('Invitations sent successfully', 'success');
+                    setTimeout(function() {
+                        window.location.href = response.redirect || "{{ url_for('groups.view_group', group_id=group.id) }}";
+                    }, 1000);
+                }
+            },
+            error: function(xhr) {
+                let error = 'An error occurred. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    error = xhr.responseJSON.error;
+                }
+                
+                showFormError(error);
+            }
+        });
     });
 });
 </script>
