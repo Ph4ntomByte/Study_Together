@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
-from werkzeug.urls import url_parse
+from urllib.parse import urlparse as url_parse
 from app import db, csrf
 from app.models.user import User
 from flask_wtf.csrf import generate_csrf
