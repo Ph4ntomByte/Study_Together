@@ -59,12 +59,20 @@ const validation = {
     showError: (containerId, message) => {
         const container = document.getElementById(containerId);
         if (container) {
-            container.innerHTML = `
-                <div class="alert alert-danger alert-dismissible fade show">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
+            const alertDiv = document.createElement('div');
+            alertDiv.className = "alert alert-danger alert-dismissible fade show";
+            
+            const messageSpan = document.createElement('span');
+            messageSpan.textContent = message;
+            alertDiv.appendChild(messageSpan);
+            
+            const closeButton = document.createElement('button');
+            closeButton.type = "button";
+            closeButton.className = "btn-close";
+            closeButton.setAttribute("data-bs-dismiss", "alert");
+            alertDiv.appendChild(closeButton);
+            
+            container.appendChild(alertDiv);
         }
     },
 
