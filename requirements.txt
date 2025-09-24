@@ -26,7 +26,7 @@ requests==2.32.0
 serverless-wsgi==3.0.2
 SQLAlchemy==2.0.28
 typing_extensions==4.13.2
-urllib3==2.4.0
+urllib3==2.5.0
 Werkzeug>=2.2.2
 WTForms==3.2.1
 zipp==3.21.0
